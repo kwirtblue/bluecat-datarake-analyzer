@@ -29,6 +29,8 @@ git clone https://gitlab.bluecatlabs.net/kwirt/datarake-wizard
 pip install -r requirements.txt 
 ```
 
+4 - From the 
+
 ## Usage Options
 ### Default
 <strong>All options: </strong> (All optional options except full extract) <br>
