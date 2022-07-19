@@ -30,12 +30,12 @@ pip install -r requirements.txt
 ```
 
 ## Usage Options
-###Default
+### Default
 <strong>All options: </strong> (All optional options except full extract) <br>
 <strong>Decompress .gz files: </strong>(decompresses the leftover .gz files after extraction) <br>
 <strong>AO: </strong>Auto open output folder after jobs are completed
 
-###Optional
+### Optional
 <strong>Full Extract: </strong>(extract all datarake files, ignores options)  <br> 
 <strong>Datarake logs: </strong>(extract /tmp/datarake directory)   <br>
 <strong>Var logs: </strong>(extracts the full /var/log director) <br>
