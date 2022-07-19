@@ -26,7 +26,7 @@ git clone https://gitlab.bluecatlabs.net/kwirt/datarake-wizard
 
 3 - Install package requirements
 ```
-pip install -r requirements.txt
+pip install -r requirements.txt 
 ```
 
 ## Usage Options
