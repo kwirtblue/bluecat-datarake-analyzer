@@ -10,15 +10,14 @@ The goal is to cut down on time and tedious tasks related to datarake file analy
 ## Installation
 
 #### Option 1 (.exe)
-Download the wizard_main.exe file and run it
-
+<a href="https://gitlab.bluecatlabs.net/kwirt/datarake-wizard/-/raw/main/wizard_main.exe?inline=false">Download the wizard_main.exe</a> file and run it
 
 #### Option 2 (python)
 
 0 - Install python 3 and pip (if you don't have it already)
 On windows: https://www.python.org/downloads/windows/
 
-1 - Download the .zip at https://gitlab.bluecatlabs.net/kwirt/datarake-wizard/-/archive/main/datarake-wizard-main.zip file or clone it if you have GIT installed:
+1 - <a href="https://gitlab.bluecatlabs.net/kwirt/datarake-wizard/-/archive/main/datarake-wizard-main.zip">Download the .zip file</a> OR clone it if you have GIT installed:
 ```
 git clone https://gitlab.bluecatlabs.net/kwirt/datarake-wizard
 ```
