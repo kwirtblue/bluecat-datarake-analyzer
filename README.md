@@ -29,7 +29,8 @@ git clone https://gitlab.bluecatlabs.net/kwirt/datarake-wizard
 pip install -r requirements.txt 
 ```
 
-4 - From the 
+4 - Run the script
+cd to the folder and run the script with python wizard_main.py
 
 ## Usage Options
 ### Default
