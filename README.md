@@ -1,4 +1,4 @@
-# BlueCat Datarake Analyzer
+# BlueCat Datarake Wizard
 
 ## Update Notes
 #### v1.0.0 
