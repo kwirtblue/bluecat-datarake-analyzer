@@ -56,5 +56,5 @@ python wizard_main.py
 <strong>Var logs: </strong>(extracts the full /var/log director) <br>
 <strong>Server log: </strong>(extract commandServer.log files from /var/log) <br>
 <strong>Syslog: </strong> (extract syslog files from /var/log)  <br>
-<strong>DHCP: </strong>(extract DHCP related files such as dhcpd.leases) <strong>Syslog: </strong> (extract syslog files from /var/log)  <br>
-<strong>DNS : </strong>(extract files in \replicated\jail\named\etc) <strong>Syslog: </strong> (extract syslog files from /var/log)  <br>
+<strong>DHCP: </strong>(extract DHCP related files such as dhcpd.leases)   <br>
+<strong>DNS : </strong>(extract files in \replicated\jail\named\etc)  <br>
