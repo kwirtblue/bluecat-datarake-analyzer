@@ -5,7 +5,7 @@
 This goal of this program is to be an all in one tool for extracting, analyzing, and evaluating datarake files.
 The goal is to cut down on time and tedious tasks related to datarake file analysis.
 
-
+<ins>Currently a GUI program for Windows only. I plan to add command line in the future.</ins>
 
 ## Installation
 
@@ -18,7 +18,7 @@ Download the wizard_main.exe file and run it
 0 - Install python 3 and pip (if you don't have it already)
 On windows: https://www.python.org/downloads/windows/
 
-1 - Download the wizard_main.py file or clone it if you have GIT installed:
+1 - Download the .zip at https://gitlab.bluecatlabs.net/kwirt/datarake-wizard/-/archive/main/datarake-wizard-main.zip file or clone it if you have GIT installed:
 ```
 git clone https://gitlab.bluecatlabs.net/kwirt/datarake-wizard
 ```
