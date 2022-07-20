@@ -1,5 +1,14 @@
 # BlueCat Datarake Analyzer
 
+##Update Notes
+#### v1.0.0 
+- First version of the program.
+- Program is able to extract datarake files with the option to decompress .gz files after completing.
+- When running the program, all options and decompress .gz files are selected by default. All options should cover all the commonly used files and folders.
+- If you don't want to use all options, you can select the specific folders you want to extract.
+- I added a full extract option that will extract all files with no filter.        
+
+
 ## Purpose
 
 This goal of this program is to be an all in one tool for extracting, analyzing, and evaluating datarake files.
@@ -10,15 +19,14 @@ The goal is to cut down on time and tedious tasks related to datarake file analy
 ## Installation
 
 #### Option 1 (.exe)
-Download the wizard_main.exe file and run it
-
+<a href="https://gitlab.bluecatlabs.net/kwirt/datarake-wizard/-/raw/main/wizard_main.exe?inline=false">Download the wizard_main.exe</a> file and run it
 
 #### Option 2 (python)
 
 0 - Install python 3 and pip (if you don't have it already)
 On windows: https://www.python.org/downloads/windows/
 
-1 - Download the .zip at https://gitlab.bluecatlabs.net/kwirt/datarake-wizard/-/archive/main/datarake-wizard-main.zip file or clone it if you have GIT installed:
+1 - <a href="https://gitlab.bluecatlabs.net/kwirt/datarake-wizard/-/archive/main/datarake-wizard-main.zip">Download the .zip file</a> OR clone it if you have GIT installed:
 ```
 git clone https://gitlab.bluecatlabs.net/kwirt/datarake-wizard
 ```
