@@ -32,7 +32,7 @@ pip install -r requirements.txt
 4 - Run the script
 cd to the folder and run the script
 ```
-python wizard_main.py
+python wizard_main.py 
 ```
 
 ## Usage Options
