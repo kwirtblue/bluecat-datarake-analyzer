@@ -18,7 +18,7 @@ Download the wizard_main.exe file and run it
 0 - Install python 3 and pip (if you don't have it already)
 On windows: https://www.python.org/downloads/windows/
 
-1 - Download the wizard_main.py file or clone it if you have GIT installed:
+1 - Download the .zip at https://gitlab.bluecatlabs.net/kwirt/datarake-wizard/-/archive/main/datarake-wizard-main.zip file or clone it if you have GIT installed:
 ```
 git clone https://gitlab.bluecatlabs.net/kwirt/datarake-wizard
 ```
