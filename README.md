@@ -30,7 +30,10 @@ pip install -r requirements.txt
 ```
 
 4 - Run the script
-cd to the folder and run the script with python wizard_main.py
+cd to the folder and run the script
+```
+python wizard_main.py
+```
 
 ## Usage Options
 ### Default
