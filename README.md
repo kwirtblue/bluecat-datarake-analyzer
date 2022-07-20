@@ -1,6 +1,6 @@
 # BlueCat Datarake Analyzer
 
-##Update Notes
+## Update Notes
 #### v1.0.0 
 - First version of the program.
 - Program is able to extract datarake files with the option to decompress .gz files after completing.
