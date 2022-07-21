@@ -1,6 +1,12 @@
 # BlueCat Datarake Wizard
 
 ## Update Notes
+
+#### v1.0.1
+- Added API extraction option for BAM files
+- Added detection for BAM vs BDDS datarake files, window changes to DNS/DHCP or API options depending on which file is detected
+- Cleaned up extraction code into a function
+- Cleaned up logger logic and added event for errors found
 #### v1.0.0 
 - First version of the program.
 - Program is able to extract datarake files with the option to decompress .gz files after completing.
