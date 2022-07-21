@@ -1,6 +1,8 @@
 # BlueCat Datarake Wizard
 
 ## Update Notes
+#### v1.0.2
+- Window now remembers last position when you re-open it
 
 #### v1.0.1
 - Added API extraction option for BAM files

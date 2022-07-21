@@ -16,9 +16,10 @@ import tarfile, os, re, sys, gzip, shutil
 from threading import Thread
 from tkinter import ttk
 
-version = '1.0.1'
+version = '1.0.2'
 
 sg.theme('DarkTeal12')
+sg.UserSettings(filename='wizard_main.py')
 sys.path.insert(0, '/images')
 
 #Function to extract files depending on which options are selected
@@ -180,7 +181,15 @@ layout= [
 ]
 
 # Create the window
-window = sg.Window('BlueCat Log Extractor', layout, icon='images/cat_icon.ico', finalize=True, resizable=True, use_default_focus=False)
+window = sg.Window('BlueCat Log Extractor',
+                   layout,
+                   icon='images/cat_icon.ico',
+                   finalize=True,
+                   resizable=True,
+                   use_default_focus=False,
+                   enable_close_attempted_event=True,
+                   location=sg.user_settings_get_entry('-location-',default=(None,None))
+                   )
 
 #Remove the dotted focus border that appears when you click on tabs
 s = ttk.Style()
@@ -195,13 +204,13 @@ s.layout("Tab",
           'sticky': 'nswe',})],
       'sticky': 'nswe',})])
 
-
-
 # Display and interact with the Window using an Event Loop
 while True:
     event, values = window.read()
     # See if user wants to quit or window was closed
-    if event == sg.WINDOW_CLOSED or event == 'Quit':
+    if event in (sg.WINDOW_CLOSED, sg.WINDOW_CLOSE_ATTEMPTED_EVENT):
+        # The line of code to save the position before exiting
+        sg.user_settings_set_entry('-location-', window.current_location())
         break
     if event == '-DATARAKE_FILE-':
         adonis_check = re.compile('ADONIS')
