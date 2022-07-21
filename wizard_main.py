@@ -16,7 +16,7 @@ import tarfile, os, re, sys, gzip, shutil
 from threading import Thread
 from tkinter import ttk
 
-version = '1.0.0'
+version = '1.0.1'
 
 sg.theme('DarkTeal12')
 sys.path.insert(0, '/images')
@@ -26,42 +26,46 @@ def extract_tar(output_path, dfile, options, fname):
     # re searches
     allfile_search = re.compile('/boot|/etc|/home|/replicated|/root|/tmp|/usr|/var')
     syslog_search = re.compile('/var/log/syslog')
-    serverlog_search = re.compile('Server.log', re.IGNORECASE)
+    serverlog_search = re.compile('\/var\/log\/.*Server\.log', re.IGNORECASE)
     dlog_search = re.compile('/tmp/datarake')
     dns_search = re.compile("replicated/jail/named/etc/(?!active)")
     dhcp_search = re.compile('/replicated/etc|/replicated/var/state/dhcp')
     varlog_search = re.compile('/var/log')
-    all_searches = [dlog_search, dns_search, dhcp_search, varlog_search]
-    #create list of files to extract
+    api_search = re.compile('/opt/server/proteus')
+    all_searches = [dlog_search, dns_search, dhcp_search, varlog_search, api_search]
+   #function to extract each file in members
+    def extract_members(members):
+        print('Extracting ' + str(len(members)) + ' files...')
+        error_list = []
+        for member in members:
+            try:
+                datarake.extract(member, path=output_path, numeric_owner=True)
+            except Exception as e:
+                error_list.append(e.__str__())
+        if len(error_list) > 0:
+            window.write_event_value('-EXTRACTION_ERRORS_FOUND-', 'Extraction errors occurred!')
+            try:
+                with open(os.path.join(output_path, fname, "extractor_errorlog.txt"), mode='w') as log_file:
+                    log_file.write('\n'.join(error_list))
+            except Exception as e:
+                print(e)
+        print('Extraction complete!')
+    # create list of files to extract
     members = []
-    #def add_members:
     failed = False
     try:
         print('Opening file...')
         with tarfile.open(dfile, mode='r:gz') as datarake:
             if 'full_extract' in options:
                 members = datarake.getmembers()
-                print('Extracting ' + str(len(members)) + ' files...')
-                error_list = []
-                for member in members:
-                        try:
-                            datarake.extract(member, path=output_path, numeric_owner=True)
-                        except Exception as e:
-                            error_list.append(e.__str__())
-                with open(os.path.join(output_path, fname, "extractor_errorlog.txt"), mode='w') as log_file:
-                    log_file.write('\n'.join(error_list))
+                extract_members(members)
             elif 'all_options' in options:
-                print('Extracting files...')
                 for compressed_file in datarake.getmembers():
                     for search in all_searches:
                         if search.search(compressed_file.name):
                             members.append(compressed_file)
                             print(compressed_file.name + " has been added to extract list...")
-                try:
-                    datarake.extractall(members=members, path=output_path, numeric_owner=True)
-                except Exception as e:
-                    print('Error: ' + str(e))
-                print('File extraction complete!')
+                extract_members(members)
             else:
                 for compressed_file in datarake.getmembers():
                     if 'syslog' in options:
@@ -88,12 +92,11 @@ def extract_tar(output_path, dfile, options, fname):
                         if varlog_search.search(compressed_file.name):
                             members.append(compressed_file)
                             print(compressed_file.name + " has been added to extract list...")
-                try:
-                    print('Extracting files...')
-                    datarake.extractall(members=members, path=output_path, numeric_owner=True)
-                    print('File extraction complete!')
-                except Exception as e:
-                    print('Error: ' + str(e))
+                    if 'apilog' in options:
+                        if api_search.search(compressed_file.name):
+                            members.append(compressed_file)
+                            print(compressed_file.name + " has been added to extract list...")
+                extract_members(members)
     except Exception as e:
         print('Extraction failed: ' + str(e))
         failed=True
@@ -145,11 +148,11 @@ extractor_tab = [
                  sg.Checkbox('Syslog', key='-syslog-', enable_events=True, disabled=True)]])],
             #service frame
             [sg.Push(),
-             #sg.Frame('BAM Service Files', layout=[
-            #    [sg.Checkbox('API Logs', key='-api_log-', enable_events=True, disabled=True)]]),
-                 sg.Frame('BDDS Service Files', layout=[
-                     [sg.Checkbox('DHCP', key='-DHCP-', enable_events=True, disabled=True),
-                      sg.Checkbox('DNS', key='-DNS-', enable_events=True, disabled=True)]])
+             sg.Frame('BAM Service Files', layout=[
+                [sg.Checkbox('API Logs', key='-api_log-', enable_events=True, disabled=True, default=False)]], key='-BAM_FRAME-', visible=False),
+             sg.Frame('BDDS Service Files', layout=[
+                [sg.Checkbox('DHCP', key='-DHCP-', enable_events=True, disabled=True, default=False),
+                 sg.Checkbox('DNS', key='-DNS-', enable_events=True, disabled=True, default=False)]], key='-BDDS_FRAME-', visible=False)
              ],
             [sg.Push(),sg.Checkbox('Decompress .gz files?', key='-decompress-',enable_events=True, default=True),sg.Checkbox('All Options', key='-all_options-', enable_events=True, default=True)],
             [sg.Push(),sg.Checkbox('Full Extract (ignores options)',key='-FULL_EXTRACT-', enable_events=True),sg.Button('Extract Logs')]
@@ -200,6 +203,22 @@ while True:
     # See if user wants to quit or window was closed
     if event == sg.WINDOW_CLOSED or event == 'Quit':
         break
+    if event == '-DATARAKE_FILE-':
+        adonis_check = re.compile('ADONIS')
+        proteus_check = re.compile('PROTEUS')
+        if proteus_check.search(values['-DATARAKE_FILE-']):
+            window['-BAM_FRAME-'].update(visible=True)
+            window['-BDDS_FRAME-'].update(visible=False)
+            window['-DHCP-'].update(value=False)
+            window['-DNS-'].update(value=False)
+            print('BAM datarake detected')
+
+        elif adonis_check.search(values['-DATARAKE_FILE-']):
+            window['-BDDS_FRAME-'].update(visible=True)
+            window['-BAM_FRAME-'].update(visible=False)
+            window['-api_log-'].update(value=False)
+            print('BDDS datarake detected')
+
     if event == '-FULL_EXTRACT-':
         if values['-FULL_EXTRACT-'] == True:
             window['-all_options-'].update(disabled=True)
@@ -209,7 +228,7 @@ while True:
             window['-DNS-'].update(disabled=True)
             window['-DHCP-'].update(disabled=True)
             window['-varlog-'].update(disabled=True)
-            #window['-api_log-'].update(disabled=True)
+            window['-api_log-'].update(disabled=True)
         else:
             window['-all_options-'].update(disabled=False)
             if values['-all_options-'] == False:
@@ -219,7 +238,7 @@ while True:
                 window['-DNS-'].update(disabled=False)
                 window['-DHCP-'].update(disabled=False)
                 window['-varlog-'].update(disabled=False)
-                #window['-api_log-'].update(disabled=False)
+                window['-api_log-'].update(disabled=False)
 
     if event == '-all_options-':
         if values['-all_options-'] == True:
@@ -229,15 +248,15 @@ while True:
             window['-DNS-'].update(disabled=True, value=False)
             window['-DHCP-'].update(disabled=True, value=False)
             window['-varlog-'].update(disabled=True, value=False)
-            #window['-api_log-'].update(disabled=True, value=False)
+            window['-api_log-'].update(disabled=True, value=False)
         else:
-            window['-dlog-'].update(disabled=False, value=True)
-            window['-syslog-'].update(disabled=False, value=True)
-            window['-serverlog-'].update(disabled=False, value=True)
-            window['-DNS-'].update(disabled=False, value=True)
-            window['-DHCP-'].update(disabled=False, value=True)
-            window['-varlog-'].update(disabled=False, value=True)
-            #window['-api_log-'].update(disabled=False, value=True)
+            window['-dlog-'].update(disabled=False)
+            window['-syslog-'].update(disabled=False)
+            window['-serverlog-'].update(disabled=False)
+            window['-DNS-'].update(disabled=False)
+            window['-DHCP-'].update(disabled=False)
+            window['-varlog-'].update(disabled=False)
+            window['-api_log-'].update(disabled=False)
 
     #Handle event when extract logs button is clicked
     if event == 'Extract Logs':
@@ -250,26 +269,26 @@ while True:
         elif values['-all_options-']:
             options.append('all_options')
         else:
-            if values['-syslog-']:
+            if values['-syslog-'] == True:
                 options.append('syslog')
-            if values['-serverlog-']:
+            if values['-serverlog-'] == True:
                 options.append('serverlog')
-            if values['-dlog-']:
+            if values['-dlog-'] == True:
                 options.append('dlog')
-            if values['-auto_open-']:
+            if values['-auto_open-'] == True:
                 options.append('auto_open')
-            if values['-DNS-']:
-                options.append('DNS')
-            if values['-DHCP-']:
-                options.append('DHCP')
-            if values['-varlog-']:
+            if values['-varlog-'] == True:
                 options.append('varlog')
-            #if values['-api_log-'] :
-            #    options.append('apilog')
+            if values['-DNS-'] == True:
+                options.append('DNS')
+            if values['-DHCP-'] == True:
+                options.append('DHCP')
+            if values['-api_log-'] == True:
+                options.append('apilog')
         if values['-decompress-']:
             options.append('decompress')
         #check that at least one main option is selected
-        main_options = ['full_extract','all_options','syslog', 'serverlog', 'dlog', 'DNS', 'DHCP', 'varlog']
+        main_options = ['full_extract','all_options','syslog', 'serverlog', 'dlog', 'DNS', 'DHCP', 'varlog','apilog']
         option_count = 0
         for option in options:
             if option in main_options:
@@ -296,6 +315,7 @@ while True:
             os.startfile(output_path)
     if event == '-EXTRACT_FAILED-':
         window['Extract Logs'].update(disabled=False)
-
+    if event == '-EXTRACTION_ERRORS_FOUND-':
+        print('Errors found, logfile has been placed in the output folder')
 # Finish up by removing from the screen
 window.close()
