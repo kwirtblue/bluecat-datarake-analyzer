@@ -15,6 +15,8 @@ import PySimpleGUI as sg
 import tarfile, os, re, sys, gzip, shutil
 from threading import Thread
 from tkinter import ttk
+import netmiko as nm
+import tabs
 
 version = '1.0.2'
 
@@ -136,48 +138,14 @@ def extract_tar(output_path, dfile, options, fname):
 
 # Define the window's contents
 #Create tab layouts
-extractor_tab = [
-    [sg.Frame('Log Extractor',size=(900,260), layout=
-        [
-            [sg.Text('Select datarake file: '),sg.Input(key='-DATARAKE_FILE-', expand_x=True, enable_events=True), sg.FileBrowse(target='-DATARAKE_FILE-', file_types=(('Datarake Files', '*.tgz'),('All File Types', '*')))],
-            [sg.Text('Output Folder: '), sg.Checkbox('AO?',tooltip='Auto open output folder upon finishing extraction', key='-auto_open-', default=True), sg.Input(key='-OUTPUT_FOLDER-', expand_x=True, enable_events=True), sg.FolderBrowse(target='-OUTPUT_FOLDER-')],
-            #logs frame
-            [sg.Push(),sg.Frame('Logs', layout=[
-                [sg.Checkbox('Datarake Logs', key='-dlog-', enable_events=True, disabled=True),
-                 sg.Checkbox('Var Logs', key='-varlog-', enable_events=True, disabled=True),
-                 sg.Checkbox('Server Log', key='-serverlog-', disabled=True, enable_events=True),
-                 sg.Checkbox('Syslog', key='-syslog-', enable_events=True, disabled=True)]])],
-            #service frame
-            [sg.Push(),
-             sg.Frame('BAM Service Files', layout=[
-                [sg.Checkbox('API Logs', key='-api_log-', enable_events=True, disabled=True, default=False)]], key='-BAM_FRAME-', visible=False),
-             sg.Frame('BDDS Service Files', layout=[
-                [sg.Checkbox('DHCP', key='-DHCP-', enable_events=True, disabled=True, default=False),
-                 sg.Checkbox('DNS', key='-DNS-', enable_events=True, disabled=True, default=False)]], key='-BDDS_FRAME-', visible=False)
-             ],
-            [sg.Push(),sg.Checkbox('Decompress .gz files?', key='-decompress-',enable_events=True, default=True),sg.Checkbox('All Options', key='-all_options-', enable_events=True, default=True)],
-            [sg.Push(),sg.Checkbox('Full Extract (ignores options)',key='-FULL_EXTRACT-', enable_events=True),sg.Button('Extract Logs')]
-        ])
-    ],
-    [sg.Frame('Output',size=(900, 300), layout=
-        [
-            [sg.Multiline(key='-OUTPUT-',size=(90,10),disabled=True, auto_refresh=True,expand_x=True, expand_y=True, reroute_stdout=True, write_only=True, autoscroll=True)] #,reroute_stderr=True
-        ])
-    ]
-]
-analyzer_tab = [
-    [sg.Frame('Log Analyzer', size=(662,300), layout=
-    [
-    ]
-    )]
-]
-
+#sftp_server = 'bluecatsftp.bluecatnetworks.com'
+sftp_server = '127.0.0.1'
 
 #sg.Tab('Analyzer',analyzer_tab, key='analyzer')
 
 #create layout
 layout= [
-    [sg.TabGroup([[sg.Tab('Extractor', extractor_tab, key='Extractor'),]],key='-TABS-', expand_x=True, expand_y=True)]
+    [sg.TabGroup([[sg.Tab('SFTP', tabs.sftp_tab, key='-SFTP_TAB-'),sg.Tab('Extractor', tabs.extractor_tab, key='Extractor')]],key='-TABS-', expand_x=True, expand_y=True)]
 ]
 
 # Create the window
@@ -212,6 +180,28 @@ while True:
         # The line of code to save the position before exiting
         sg.user_settings_set_entry('-location-', window.current_location())
         break
+
+    ###START OF SFTP TAB EVENTS
+    if event == '-sftp_login-':
+        if values['-sftp_username-'] and values['-sftp_password-']:
+            if len(values['-sftp_username-']) > 0 and len(values['-sftp_password-']) >0:
+                bcat_sftp_server = {
+                    "device_type": "linux",
+                    "host": sftp_server,
+                    "username": values['-sftp_username-'],
+                    "password": values['-sftp_password-'],
+                }
+                try:
+                    with nm.ConnectHandler(**bcat_sftp_server) as server:
+                        if server.find_prompt()[-1] == '$':
+                            window['-sftp_login_frame-'].update(visible=False)
+                            window['-sftp_browser_frame-'].update(visible=True)
+                except Exception as e:
+                    pos_x,pos_y = window.current_location()
+                    sg.PopupScrolled(e, location=(pos_x,pos_y), size=(32,12))
+
+    ###END OF SFTP TAB EVENTS
+    ####START OF EXTRACTOR TAB EVENTS
     if event == '-DATARAKE_FILE-':
         adonis_check = re.compile('ADONIS')
         proteus_check = re.compile('PROTEUS')
@@ -278,21 +268,21 @@ while True:
         elif values['-all_options-']:
             options.append('all_options')
         else:
-            if values['-syslog-'] == True:
+            if values['-syslog-'] is True:
                 options.append('syslog')
-            if values['-serverlog-'] == True:
+            if values['-serverlog-'] is True:
                 options.append('serverlog')
-            if values['-dlog-'] == True:
+            if values['-dlog-'] is True:
                 options.append('dlog')
-            if values['-auto_open-'] == True:
+            if values['-auto_open-'] is True:
                 options.append('auto_open')
-            if values['-varlog-'] == True:
+            if values['-varlog-'] is True:
                 options.append('varlog')
-            if values['-DNS-'] == True:
+            if values['-DNS-'] is True:
                 options.append('DNS')
-            if values['-DHCP-'] == True:
+            if values['-DHCP-'] is True:
                 options.append('DHCP')
-            if values['-api_log-'] == True:
+            if values['-api_log-'] is True:
                 options.append('apilog')
         if values['-decompress-']:
             options.append('decompress')
@@ -326,5 +316,8 @@ while True:
         window['Extract Logs'].update(disabled=False)
     if event == '-EXTRACTION_ERRORS_FOUND-':
         print('Errors found, logfile has been placed in the output folder')
+    ###END OF EXTRACTOR TAB EVENTS
+
+
 # Finish up by removing from the screen
 window.close()
