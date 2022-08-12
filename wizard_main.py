@@ -146,30 +146,34 @@ def main():
                 download_item_list = sftp_tab.download_window(window, selection, download_item_list=download_item_list)
         if event == '-SFTP_OUTPUT_FOLDER-':
             window['-OUTPUT_FOLDER-'].update(value=values['-SFTP_OUTPUT_FOLDER-'])
-        if event == '-download_only-':
+        if event[0] == '-sftp_download-':
             download_file_list = window['-download_list-'].get()
-            window['-download_only-'].update(disabled=True)
-            window['-download_extract-'].update(disabled=True)
-            window['-download_analyze-'].update(disabled=True)
-            window.start_thread(lambda : sftp_tab.sftp_download_thread(window,
-                                                                       workflow_option='download_only',
-                                                                       item_list= download_item_list,
-                                                                       output_path= values['-OUTPUT_FOLDER-'],
-                                                                       sftp_connection= sftp_con
-                                                                       ),
-                                end_key=('-DOWNLOAD_THREAD-','-DOWNLOADS_FINISHED-'))
-        if event == '-download_extract-':
-            sg.Popup(window['-download_list-'].get())
-            #sftp_tab.sftp_workflow(workflow_option='download_extract', output_path= values['-OUTPUT_FOLDER-'])
-        if event == '-download_analyze-':
-            pass
-            #sftp_tab.sftp_workflow(workflow_option='download_analyze', output_path= values['-OUTPUT_FOLDER-'])
+            if len(download_file_list) != 0:
+                if len(values['-SFTP_OUTPUT_FOLDER-']) > 0:
+                    window[('-sftp_download-','-download_only-')].update(disabled=True)
+                    window[('-sftp_download-','-download_extract-')].update(disabled=True)
+                    window[('-sftp_download-','-download_analyze-')].update(disabled=True)
+                    window.start_thread(lambda : sftp_tab.sftp_download_thread(window,
+                                                                               workflow_option='download_only',
+                                                                               item_list= download_item_list,
+                                                                               output_path= values['-OUTPUT_FOLDER-'],
+                                                                               sftp_connection= sftp_con
+                                                                               ),
+                                    end_key=('-DOWNLOAD_THREAD-','-DOWNLOADS_FINISHED-'))
+                else:
+                    window['-sftp_output-'].print('No output folder selected!')
         if event[0] == '-DOWNLOAD_THREAD-':
+            if 'remove_list' not in locals():
+                remove_list = []
+            if event[1] == '-FILE_DOWNLOADED-':
+                remove_list.append(values[('-DOWNLOAD_THREAD-','-FILE_DOWNLOADED-')])
             if event[1] == '-DOWNLOADS_FINISHED-':
-                sg.Popup('Sweet success!', location=window.current_location())
-                window['-download_only-'].update(disabled=False)
-                window['-download_extract-'].update(disabled=False)
-                window['-download_analyze-'].update(disabled=False)
+                window[('-sftp_download-','-download_only-')].update(disabled=False)
+                window[('-sftp_download-','-download_extract-')].update(disabled=False)
+                window[('-sftp_download-','-download_analyze-')].update(disabled=False)
+                for item in remove_list:
+                    download_item_list.remove(item)
+                remove_list = []
         if event == '-sftp_end_session-':
             sftp_tab.end_session(
                 sftp_server=bcat_sftp_server,

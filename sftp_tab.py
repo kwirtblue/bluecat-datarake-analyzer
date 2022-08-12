@@ -64,25 +64,34 @@ sftp_tab = [
                           layout=[
                     [sg.Multiline(key='-sftp_output-',
                               expand_x=True,
+                              expand_y=True,
                               size=(10,5),
                               disabled=True)
                     ]
                 ])],
                 [sg.Frame('Download Progress', layout=
                 [
-                    [sg.Text(),
-                        sg.ProgressBar(max_value=100,
+                    [sg.Text('',key='-bytes_downloaded-')],
+                    [sg.Text('',key='-num_files-')],
+                    [sg.VPush()],
+                    [sg.ProgressBar(max_value=100,
                                     key='-download_progress-',
                                     orientation='horizontal',
                                     pad=(10,5),
                                     bar_color=('green','white'),
+                                    expand_x=True,
                                     size=(45,15))
-                     ]
-                 ])],
+                    ],
+                    [sg.Push(),sg.Text('',key='-download_percentage-', pad = 0),sg.Push()],
+                ],
+                          key = '-download_frame-',
+                          visible = False,
+                          expand_x=True,
+                          expand_y=True)],
                 [sg.Text('Output Folder'),sg.Input(key='-SFTP_OUTPUT_FOLDER-', enable_events=True, expand_x=True),sg.FolderBrowse()],
-                [sg.Button('Download Only', key='-download_only-'),
-                 sg.Button('Download and Extract', key='-download_extract-'),
-                 sg.Button('Download and Analyze', key='-download_analyze-')]
+                [sg.Button('Download Only', key=('-sftp_download-','-download_only-')),
+                 sg.Button('Download and Extract', key=('-sftp_download-','-download_extract-')),
+                 sg.Button('Download and Analyze', key=('-sftp_download-','-download_analyze-'))]
             ],
             element_justification='right',
             expand_x=True,
@@ -266,21 +275,40 @@ def download_window(window,selection, download_item_list):
         new_download_item_list.pop(selection)
         return new_download_item_list
 def sftp_download_thread(window, workflow_option, item_list, sftp_connection, output_path):
-    if workflow_option == 'download_only':
-        for file in item_list:
-            local_path = f'{output_path}/{file.filename}'
-            window['-sftp_output-'].print(f'Downloading: {file.filename}')
+    window['-download_frame-'].update(visible=True)
+    file_count = len(item_list)
+    file_number = 0
+    download_list = window['-download_list-'].get()
+    def download_progress(transferred_bytes, total_bytes):
+        current_percentage = int(transferred_bytes / total_bytes * 100)
+        window['-download_percentage-'].update(value = f'{current_percentage}%')
+        window['-bytes_downloaded-'].update(value=f'Bytes Downloaded: {transferred_bytes} of {total_bytes}')
+        window['-download_progress-'].update(current_count = current_percentage)
+    for file in item_list:
+        file_number += 1
+        num_files = f'Downloading file {file_number} of {file_count}...'
+        window['-num_files-'].update(value=num_files)
+        local_path = f'{output_path}/{file.filename}'
+        window['-sftp_output-'].print(f'Downloading: {file.filename}')
+        try:
             sftp_connection.get(file.path,
                                 local_path,
+                                callback = download_progress,
+                                prefetch = False
                                 )
-
-        #window['-download_progress-'].update(current_count=50)
-    if workflow_option == 'download_extract':
-        pass
-        #sg.Popup('Download and extract clicked')
-    if workflow_option == 'download_analyze':
-        pass
-        #sg.Popup('Download and analyze clicked')
+        except Exception as e:
+            if e.args[0] == 'Socket is closed':
+                window['-sftp_browser_frame-'].update(visible=False)
+                window['-sftp_login_frame-'].update(visible=True)
+            if e.args[0] == (13, 'Permission denied'):
+                window['-sftp_output-'].print(f'{e.args}, connection may have timed out...')
+            window['-sftp_output-'].print(f'File download error: {e.args}')
+        else:
+            window['-sftp_output-'].print('File download finished!')
+            window.write_event_value(key=('-DOWNLOAD_THREAD-','-FILE_DOWNLOADED-'),
+                                     value=file)
+            download_list.remove([file.filename])
+            window['-download_list-'].update(values = download_list)
 def end_session(sftp_server, window):
     sftp_server.close()
     window['-sftp_browser_frame-'].update(visible=False)
