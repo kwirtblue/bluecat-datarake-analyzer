@@ -69,3 +69,10 @@ python wizard_main.py
 <strong>Syslog: </strong> (extract syslog files from /var/log)  <br>
 <strong>DHCP: </strong>(extract DHCP related files such as dhcpd.leases)   <br>
 <strong>DNS : </strong>(extract files in \replicated\jail\named\etc)  <br>
+
+
+## Pictures of the GUI:
+![image](https://user-images.githubusercontent.com/102491305/190733644-909e6f02-f655-4db2-b4c2-3e6197f23c97.png)
+![image](https://user-images.githubusercontent.com/102491305/190734562-98989564-dc4b-46d1-b6b1-8ea96cf62786.png)
+![image](https://user-images.githubusercontent.com/102491305/190737391-b8993257-a2d1-4557-8792-163f594386aa.png)
+
